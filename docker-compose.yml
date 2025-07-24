@@ -1,0 +1,40 @@
+version: "3"
+services:
+  loki:
+    image: grafana/loki:2.7.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+    networks:
+      - callmate-network
+
+  grafana:
+    image: grafana/grafana:9.5.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+    networks:
+      - callmate-network
+
+  logging-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: logging-service
+    ports:
+      - "8084:8080"
+    networks:
+      - callmate-network
+    depends_on:
+      - loki
+
+networks:
+  callmate-network:
+    external: true
+    driver: bridge
